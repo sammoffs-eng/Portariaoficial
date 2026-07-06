@@ -1,219 +1,299 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portaria Plaza - Sistema Cloud</title>
+<!DOCTYPE html>  <html lang="pt-br">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Portaria Plaza - Sistema Cloud</title>  
     
-    <!-- SDKs do Firebase (Versão Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>  
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>  
     
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #2980b9;
-            --success: #27ae60;
-            --danger: #e74c3c;
-            --bg: #f4f7f9;
-        }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>  
+  
+<style>  
+    :root {  
+        --primary: #2c3e50;  
+        --accent: #2980b9;  
+        --success: #27ae60;  
+        --danger: #e74c3c;  
+        --bg: #f4f7f9;  
+        --warning: #e67e22;  
+        --info: #3498db;
+    }  
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: var(--primary); text-align: center; margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
-        
-        .form-grid { display: flex; flex-direction: column; gap: 10px; }
-        .field { display: flex; flex-direction: column; position: relative; }
-        label { font-size: 0.7rem; font-weight: bold; color: #7f8c8d; margin-bottom: 3px; text-transform: uppercase; }
-        input { padding: 12px; padding-right: 40px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 16px; outline: none; }
-        
-        .voice-btn { position: absolute; right: 8px; top: 24px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--accent); z-index: 5; }
-        .btn-save { padding: 15px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 5px; }
-        
-        .search-area { margin: 15px 0; padding: 15px; background: #eef2f7; border-radius: 8px; border: 1px solid #d1d8e0; }
-        .search-area label { display: block; margin-bottom: 8px; color: var(--primary); font-weight: bold; }
-        #buscaGeral { width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--accent); border-radius: 8px; font-size: 16px; margin-bottom: 10px; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); margin: 0; padding: 10px; }  
+    .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }  
+    h2 { color: var(--primary); text-align: center; margin-bottom: 15px; border-bottom: 2px solid var(--accent); padding-bottom: 5px; }  
+      
+    .form-grid { display: flex; flex-direction: column; gap: 10px; }  
+    .field { display: flex; flex-direction: column; position: relative; }  
+    label { font-size: 0.7rem; font-weight: bold; color: #7f8c8d; margin-bottom: 3px; text-transform: uppercase; }  
+    input { padding: 12px; padding-right: 40px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 16px; outline: none; }  
+      
+    .voice-btn { position: absolute; right: 8px; top: 24px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--accent); z-index: 5; }  
+    .btn-save { padding: 15px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 5px; }  
+      
+    .search-area { margin: 15px 0; padding: 15px; background: #eef2f7; border-radius: 8px; border: 1px solid #d1d8e0; }  
+    .search-area label { display: block; margin-bottom: 8px; color: var(--primary); font-weight: bold; }  
+    #buscaGeral { width: 100%; box-sizing: border-box; padding: 12px; border: 2px solid var(--accent); border-radius: 8px; font-size: 16px; margin-bottom: 10px; }  
 
-        .card { background: white; border: 1px solid #e1e8ed; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 5px solid var(--accent); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .visitor-name { font-weight: bold; color: var(--primary); font-size: 1rem; }
-        .apto-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
-        
-        .details { font-size: 0.85rem; color: #444; line-height: 1.5; }
-        .times-box { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-size: 0.75rem; }
-        
-        .btn-exit { width: 100%; padding: 10px; background: #fff5f5; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; }
+    .card { background: white; border: 1px solid #e1e8ed; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 5px solid var(--accent); }  
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }  
+    .visitor-name { font-weight: bold; color: var(--primary); font-size: 1rem; }  
+    .apto-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }  
+      
+    .details { font-size: 0.85rem; color: #444; line-height: 1.5; }  
+    .times-box { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-size: 0.75rem; }  
+      
+    .card-buttons { display: flex; gap: 5px; margin-top: 8px; }
+    .btn-exit { flex: 1; padding: 10px; background: #fff5f5; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; cursor: pointer; font-weight: bold; }  
+    .btn-reuse { flex: 1; padding: 10px; background: #eef5fc; color: var(--info); border: 1px solid var(--info); border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        #statusConexao { text-align: center; font-size: 0.7rem; margin-bottom: 10px; font-weight: bold; }
-        .online { color: var(--success); }
-        .offline { color: var(--danger); }
+    .btn-actions { display: flex; gap: 10px; margin-bottom: 10px; }  
+    .btn-action-item { flex: 1; padding: 12px; cursor: pointer; font-weight: bold; border-radius: 8px; border: none; }  
+    .btn-print { background: #d1d8e0; color: var(--primary); }  
+    .btn-pdf { background: var(--warning); color: white; }  
 
-        @media print {
-            .form-grid, .search-area, .btn-exit, .voice-btn, h2, #statusConexao { display: none !important; }
-            .container { box-shadow: none; width: 100%; }
-        }
-    </style>
-</head>
-<body>
+    #statusConexao { text-align: center; font-size: 0.7rem; margin-bottom: 10px; font-weight: bold; }  
+    .online { color: var(--success); }  
+    .offline { color: var(--danger); }  
 
-<div class="container">
-    <h2>🏢 Portaria Plaza</h2>
-    <div id="statusConexao">Tentando conectar ao banco...</div>
+    @media print {  
+        .form-grid, .search-area, .card-buttons, .voice-btn, h2, #statusConexao, .btn-actions { display: none !important; }  
+        .container { box-shadow: none; width: 100%; }  
+    }  
+</style>  
+</head>  
+<body>  
+<div class="container">  
+    <h2>🏢 Portaria Plaza</h2>  
+    <div id="statusConexao">Tentando conectar ao banco...</div>  
     
-    <div class="form-grid">
-        <div class="field"><label>Visitante</label><input type="text" id="nome"><button class="voice-btn" onclick="ouvirVoz('nome')">🎤</button></div>
-        <div class="field"><label>Empresa</label><input type="text" id="empresa"><button class="voice-btn" onclick="ouvirVoz('empresa')">🎤</button></div>
-        <div class="field"><label>Documento</label><input type="text" id="identidade"><button class="voice-btn" onclick="ouvirVoz('identidade')">🎤</button></div>
-        <div class="field"><label>Apartamento</label><input type="text" id="apto"><button class="voice-btn" onclick="ouvirVoz('apto')">🎤</button></div>
-        <div class="field"><label>Assunto</label><input type="text" id="assunto"><button class="voice-btn" onclick="ouvirVoz('assunto')">🎤</button></div>
-        <div class="field"><label>Autorizado por</label><input type="text" id="autorizador"><button class="voice-btn" onclick="ouvirVoz('autorizador')">🎤</button></div>
-        <button class="btn-save" onclick="salvar()">REGISTRAR ENTRADA</button>
-    </div>
+    <div class="form-grid">  
+        <div class="field"><label>Visitante</label><input type="text" id="nome"><button class="voice-btn" onclick="ouvirVoz('nome')">🎤</button></div>  
+        <div class="field"><label>Empresa</label><input type="text" id="empresa"><button class="voice-btn" onclick="ouvirVoz('empresa')">🎤</button></div>  
+        <div class="field"><label>Documento</label><input type="text" id="identidade"><button class="voice-btn" onclick="ouvirVoz('identidade')">🎤</button></div>  
+        <div class="field"><label>Apartamento</label><input type="text" id="apto"><button class="voice-btn" onclick="ouvirVoz('apto')">🎤</button></div>  
+        <div class="field"><label>Assunto</label><input type="text" id="assunto"><button class="voice-btn" onclick="ouvirVoz('assunto')">🎤</button></div>  
+        <div class="field"><label>Autorizado por</label><input type="text" id="autorizador"><button class="voice-btn" onclick="ouvirVoz('autorizador')">🎤</button></div>  
+        <button class="btn-save" onclick="salvar()">REGISTRAR ENTRADA</button>  
+    </div>  
 
-    <div class="search-area">
-        <label>🔍 PESQUISAR (APTO, NOME OU DATA)</label>
-        <input type="text" id="buscaGeral" onkeyup="filtrarGeral()" placeholder="Ex: 101 ou 03/05/2026">
-    </div>
+    <div class="search-area">  
+        <label>🔍 PESQUISAR (APTO, NOME OU DATA)</label>  
+        <input type="text" id="buscaGeral" onkeyup="filtrarGeral()" placeholder="Ex: 101 ou 03/05/2026">  
+    </div>  
 
-    <button style="width:100%; margin-bottom:10px; padding:10px; cursor:pointer;" onclick="window.print()">🖨️ Imprimir Lista</button>
-    <div id="listaContainer">Sincronizando registros...</div>
-</div>
+    <div class="btn-actions">  
+        <button class="btn-action-item btn-print" onclick="window.print()">🖨️ Imprimir</button>  
+        <button class="btn-action-item btn-pdf" onclick="gerarPDF()">📄 Salvar PDF</button>  
+    </div>  
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyC84jU__ByvHu_BrgzscG21LTupig4Q4n8",
-        authDomain: "visitantes-fc442.firebaseapp.com",
-        databaseURL: "https://visitantes-fc442-default-rtdb.firebaseio.com",
-        projectId: "visitantes-fc442",
-        storageBucket: "visitantes-fc442.firebasestorage.app",
-        messagingSenderId: "488090737448",
-        appId: "1:488090737448:web:a45f35c0a354d84e0dce1d"
-    };
+    <div id="listaContainer">Sincronizando registros...</div>  
+</div>  
 
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const listaRef = database.ref('registros_plaza');
-    const statusDiv = document.getElementById('statusConexao');
+<script>  
+    const firebaseConfig = {  
+        apiKey: "AIzaSyC84jU__ByvHu_BrgzscG21LTupig4Q4n8",  
+        authDomain: "visitantes-fc442.firebaseapp.com",  
+        databaseURL: "https://visitantes-fc442-default-rtdb.firebaseio.com",  
+        projectId: "visitantes-fc442",  
+        storageBucket: "visitantes-fc442.firebasestorage.app",  
+        messagingSenderId: "488090737448",  
+        appId: "1:488090737448:web:a45f35c0a354d84e0dce1d"  
+    };  
+  
+    firebase.initializeApp(firebaseConfig);  
+    const database = firebase.database();  
+    const listaRef = database.ref('registros_plaza');  
+    const statusDiv = document.getElementById('statusConexao');  
+    
+    window.listaAtualFiltro = [];  
+  
+    database.ref(".info/connected").on("value", (snap) => {  
+        if (snap.val() === true) {  
+            statusDiv.innerHTML = "● BANCO ONLINE";  
+            statusDiv.className = "online";  
+        } else {  
+            statusDiv.innerHTML = "○ BANCO OFFLINE";  
+            statusDiv.className = "offline";  
+        }  
+    });  
+  
+    function salvar() {  
+        const nome = document.getElementById('nome').value;  
+        const apto = document.getElementById('apto').value;  
+          
+        if (!nome || !apto) {  
+            alert("Nome e Apartamento são obrigatórios.");  
+            return;  
+        }  
+  
+        const agora = new Date();  
+        const dataPadrao = agora.toLocaleDateString('pt-BR');   
+  
+        const dados = {  
+            nome: nome,  
+            empresa: document.getElementById('empresa').value || "-",  
+            identidade: document.getElementById('identidade').value || "-",  
+            apto: apto,  
+            assunto: document.getElementById('assunto').value || "-",  
+            autorizador: document.getElementById('autorizador').value || "-",  
+            dataEntrada: dataPadrao,  
+            horaEntrada: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),  
+            dataSaida: null,  
+            horaSaida: null,  
+            timestamp: firebase.database.ServerValue.TIMESTAMP  
+        };  
+  
+        listaRef.push(dados).then(() => {  
+            document.querySelectorAll('.field input').forEach(i => i.value = "");  
+            window.scrollTo({top: 0, behavior: 'smooth'}); // Rola para o topo suavemente
+        }).catch(e => alert("Erro ao salvar: " + e.message));  
+    }  
+  
+    function registrarSaida(id) {  
+        const agora = new Date();  
+        database.ref('registros_plaza/' + id).update({   
+            dataSaida: agora.toLocaleDateString('pt-BR'),  
+            horaSaida: managerTimeFormat(agora)
+        });  
+    }  
 
-    database.ref(".info/connected").on("value", (snap) => {
-        if (snap.val() === true) {
-            statusDiv.innerHTML = "● BANCO ONLINE";
-            statusDiv.className = "online";
-        } else {
-            statusDiv.innerHTML = "○ BANCO OFFLINE";
-            statusDiv.className = "offline";
-        }
-    });
-
-    function salvar() {
-        const nome = document.getElementById('nome').value;
-        const apto = document.getElementById('apto').value;
-        
-        if (!nome || !apto) {
-            alert("Nome e Apartamento são obrigatórios.");
-            return;
-        }
-
-        const agora = new Date();
-        const dataPadrao = agora.toLocaleDateString('pt-BR'); 
-
-        const dados = {
-            nome: nome,
-            empresa: document.getElementById('empresa').value || "-",
-            identidade: document.getElementById('identidade').value || "-",
-            apto: apto,
-            assunto: document.getElementById('assunto').value || "-",
-            autorizador: document.getElementById('autorizador').value || "-",
-            dataEntrada: dataPadrao,
-            horaEntrada: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-            dataSaida: null,
-            horaSaida: null,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        };
-
-        listaRef.push(dados).then(() => {
-            document.querySelectorAll('.field input').forEach(i => i.value = "");
-        }).catch(e => alert("Erro ao salvar: " + e.message));
+    function managerTimeFormat(dateObj) {
+        return dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
-
-    function registrarSaida(id) {
-        const agora = new Date();
-        database.ref('registros_plaza/' + id).update({ 
-            dataSaida: agora.toLocaleDateString('pt-BR'),
-            horaSaida: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        });
-    }
-
-    listaRef.on('value', (snapshot) => {
-        const val = snapshot.val();
-        let registros = [];
-        for (let id in val) {
-            registros.push({ id, ...val[id] });
-        }
-        registros.sort((a, b) => b.timestamp - a.timestamp);
-        window.bancoLocal = registros;
-        renderizar(registros);
-    });
-
-    function renderizar(lista) {
-        const container = document.getElementById('listaContainer');
-        if (!lista || lista.length === 0) {
-            container.innerHTML = "<p style='text-align:center;'>Nenhum registro encontrado.</p>";
-            return;
-        }
-        container.innerHTML = lista.map(item => {
-            const dataExibicao = item.dataEntrada || item.data || "Data indisponível";
-            
-            return `
-            <div class="card">
-                <div class="card-header">
-                    <span class="visitor-name">${item.nome}</span>
-                    <span class="apto-badge">APT ${item.apto}</span>
+  
+    listaRef.on('value', (snapshot) => {  
+        const val = snapshot.val();  
+        let registros = [];  
+        for (let id in val) {  
+            registros.push({ id, ...val[id] });  
+        }  
+        registros.sort((a, b) => b.timestamp - a.timestamp);  
+        window.bancoLocal = registros;  
+        window.listaAtualFiltro = registros;  
+        renderizar(registros);  
+    });  
+  
+    function renderizar(lista) {  
+        const container = document.getElementById('listaContainer');  
+        if (!lista || lista.length === 0) {  
+            container.innerHTML = "<p style='text-align:center;'>Nenhum registro encontrado.</p>";  
+            return;  
+        }  
+        container.innerHTML = lista.map(item => {  
+            const dataExibicao = item.dataEntrada || item.data || "Data indisponível";  
+              
+            return `  
+            <div class="card">  
+                <div class="card-header">  
+                    <span class="visitor-name">${item.nome}</span>  
+                    <span class="apto-badge">APT ${item.apto}</span>  
+                </div>  
+                <div class="details">  
+                    <strong>Empresa:</strong> ${item.empresa || "-"}<br>  
+                    <strong>Documento:</strong> ${item.identidade}<br>  
+                    <strong>Assunto:</strong> ${item.assunto}<br>  
+                    <strong>Autorizado:</strong> ${item.autorizador}  
+                </div>  
+                <div class="times-box">  
+                    <span>📅 <strong>Entrada:</strong> ${dataExibicao} às ${item.horaEntrada}</span>  
+                    <span style="color:${item.horaSaida ? 'red' : 'green'}; font-weight:bold;">  
+                        ${item.horaSaida ? '🚪 <strong>Saída:</strong> ' + (item.dataSaida || dataExibicao) + ' às ' + item.horaSaida : '✓ No prédio'}  
+                    </span>  
+                </div>  
+                <div class="card-buttons">
+                    ${!item.horaSaida ? `<button class="btn-exit" onclick="registrarSaida('${item.id}')">Registrar Saída</button>` : ''}  
+                    <button class="btn-reuse" onclick="reutilizarDados('${item.id}')">🔄 Nova Entrada</button>
                 </div>
-                <div class="details">
-                    <strong>Empresa:</strong> ${item.empresa || "-"}<br>
-                    <strong>Documento:</strong> ${item.identidade}<br>
-                    <strong>Assunto:</strong> ${item.assunto}<br>
-                    <strong>Autorizado:</strong> ${item.autorizador}
-                </div>
-                <div class="times-box">
-                    <span>📅 <strong>Entrada:</strong> ${dataExibicao} às ${item.horaEntrada}</span>
-                    <span style="color:${item.horaSaida ? 'red' : 'green'}; font-weight:bold;">
-                        ${item.horaSaida ? '🚪 <strong>Saída:</strong> ' + (item.dataSaida || dataExibicao) + ' às ' + item.horaSaida : '✓ No prédio'}
-                    </span>
-                </div>
-                ${!item.horaSaida ? `<button class="btn-exit" onclick="registrarSaida('${item.id}')">Registrar Saída</button>` : ''}
-            </div>
-        `}).join('');
+            </div>  
+        `}).join('');  
+    }  
+  
+    // Nova função para buscar os dados do histórico e preencher o formulário automaticamente
+    function reutilizarDados(id) {
+        const registro = window.bancoLocal.find(r => r.id === id);
+        if (!registro) return;
+
+        // Preenche os inputs do topo da tela com as informações existentes
+        document.getElementById('nome').value = registro.nome || "";
+        document.getElementById('empresa').value = registro.empresa === "-" ? "" : (registro.empresa || "");
+        document.getElementById('identidade').value = registro.identidade === "-" ? "" : (registro.identidade || "");
+        document.getElementById('apto').value = registro.apto || "";
+        document.getElementById('assunto').value = registro.assunto === "-" ? "" : (registro.assunto || "");
+        document.getElementById('autorizador').value = registro.autorizador === "-" ? "" : (registro.autorizador || "");
+
+        // Rola a tela até o formulário de cadastro e foca no campo assunto (caso precise alterar o motivo da visita)
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        document.getElementById('assunto').focus();
     }
 
-    function filtrarGeral() {
-        const termo = document.getElementById('buscaGeral').value.toLowerCase();
-        if (!window.bancoLocal) return;
-        
-        const filtrados = window.bancoLocal.filter(r => {
-            const dEntrada = (r.dataEntrada || r.data || "").toLowerCase();
-            const dSaida = (r.dataSaida || "").toLowerCase();
-            const empresa = (r.empresa || "").toLowerCase();
-            return r.apto.toString().toLowerCase().includes(termo) || 
-                   r.nome.toLowerCase().includes(termo) ||
-                   empresa.includes(termo) ||
-                   dEntrada.includes(termo) || 
-                   dSaida.includes(termo);
-        });
-        renderizar(filtrados);
-    }
+    function filtrarGeral() {  
+        const termo = document.getElementById('buscaGeral').value.toLowerCase();  
+        if (!window.bancoLocal) return;  
+          
+        const filtrados = window.bancoLocal.filter(r => {  
+            const dEntrada = (r.dataEntrada || r.data || "").toLowerCase();  
+            const dSaida = (r.dataSaida || "").toLowerCase();  
+            const empresa = (r.empresa || "").toLowerCase();  
+            return r.apto.toString().toLowerCase().includes(termo) ||   
+                   r.nome.toLowerCase().includes(termo) ||  
+                   empresa.includes(termo) ||  
+                   dEntrada.includes(termo) ||   
+                   dSaida.includes(termo);  
+        });  
+        window.listaAtualFiltro = filtrados;  
+        renderizar(filtrados);  
+    }  
+  
+    function ouvirVoz(campoId) {  
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;  
+        if (!Speech) return alert("Voz não suportada.");  
+        const recognition = new Speech();  
+        recognition.lang = 'pt-BR';  
+        recognition.start();  
+        recognition.onresult = (e) => {  
+            document.getElementById(campoId).value = e.results[0][0].transcript;  
+        };  
+    }  
 
-    function ouvirVoz(campoId) {
-        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!Speech) return alert("Voz não suportada.");
-        const recognition = new Speech();
-        recognition.lang = 'pt-BR';
-        recognition.start();
-        recognition.onresult = (e) => {
-            document.getElementById(campoId).value = e.results[0][0].transcript;
-        };
-    }
-</script>
-</body>
+    function gerarPDF() {  
+        if (!window.listaAtualFiltro || window.listaAtualFiltro.length === 0) {  
+            return alert("Não há registros na tela para gerar o PDF.");  
+        }  
+
+        const { jsPDF } = window.jspdf;  
+        const doc = new jsPDF('l', 'mm', 'a4');  
+
+        doc.setFontSize(16);  
+        doc.text("Relatório de Visitantes - Portaria Plaza", 14, 15);  
+        doc.setFontSize(10);  
+        doc.text("Gerado em: " + new Date().toLocaleString('pt-BR'), 14, 21);  
+
+        const colunas = ["Visitante", "Apto", "Empresa", "Documento", "Assunto", "Autorizado por", "Entrada", "Saída"];  
+        const linhas = window.listaAtualFiltro.map(item => [  
+            item.nome,  
+            item.apto,  
+            item.empresa || "-",  
+            item.identidade || "-",  
+            item.assunto || "-",  
+            item.autorizador || "-",  
+            `${item.dataEntrada} às ${item.horaEntrada}`,  
+            item.horaSaida ? `${item.dataSaida || item.dataEntrada} às ${item.horaSaida}` : "No prédio"  
+        ]);  
+
+        doc.autoTable({  
+            head: [colunas],  
+            body: linhas,  
+            startY: 26,  
+            theme: 'grid',  
+            headStyles: { fillColor: [44, 62, 80] },  
+            styles: { fontSize: 9 }  
+        });  
+
+        doc.save(`relatorio-portaria-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`);  
+    }  
+</script>  
+</body>  
 </html>
